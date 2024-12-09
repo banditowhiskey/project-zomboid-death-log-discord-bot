@@ -102,7 +102,7 @@ async def monitor_log_file(file_path):
                         f"**Position:** {data['position']}\n"
                         f"**Traits:** {data['traits']}\n"
                         f"**Skills:** {data['skills']}\n"
-                        f"**Inventory:** {data['inventory']}"
+                        #f"**Inventory:** {data['inventory']}"
                     )
                     await secondary_channel.send(details)
 

@@ -5,12 +5,6 @@
 
 This bot monitors a log file from a Project Zomboid server and posts relevant information to two Discord channels. The bot is designed to notify about player deaths, with one channel receiving the death cause and another receiving detailed player information.
 
-  
-
----
-
-  
-
 ## Features
 
 - Posts the cause of death to a primary Discord channel.
@@ -19,31 +13,21 @@ This bot monitors a log file from a Project Zomboid server and posts relevant in
 
 - Continuously monitors the server's log file for new entries.
 
-  
-
----
-
-  
-
 ## Requirements
 
+- [Advanced Death Log mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3298519559)
 - Python 3.8+
+- `discord.py` library
+- `python-dotenv` library
+- A discord bot that you have registered and have the token for
 
--  `discord.py` library
-
--  `python-dotenv` library
-
-  
-
----
-
-  
 
 ## Installation
 
-  
-
 1.  **Clone the Repository**:
+
+In your Zomboid directory (typically `/home/username/Zomboid`) clone the repo. It needs to be in here because the bot currently uses a relative path to the logs.
+
 ```bash
 git clone https://github.com/banditowhiskey/project-zomboid-death-log-discord-bot.git
 cd project-zomboid-discord-bot
@@ -57,11 +41,14 @@ pip install -r requirements.txt
 3. **Set Up Environment Variables**:
 The bot requires the following environment variables:
 - `DISCORD_BOT_TOKEN`: Your bot's token from the Discord Developer Portal.
-- `PRIMARY_CHANNEL_ID`: The ID of the channel for posting death causes.
-- `SECONDARY_CHANNEL_ID`: The ID of the channel for posting detailed player information.
+- `PRIMARY_CHANNEL_ID`: The ID of the channel for posting death causes. This is usually a public channel for players to see.
+- `SECONDARY_CHANNEL_ID`: The ID of the channel for posting detailed player information. This is typically a restricted channel for admin use only.
 
-Create a `.env` file in the project directory:
-``nano .env``
+Create a `.env` file in the project directory with your preferred editor. In this example, we'll use nano.
+
+```bash
+nano .env
+```
 
 Add the following content (replace the placeholders with your values):
 ```bash
@@ -85,12 +72,12 @@ source ~/.bashrc
 ```
 
 4. **Run the Bot:**
-``python bot.py``
 
+```bash
+python advanced-death-log-bot.py
+```
 
----
-
-  
+Depending on your flavor of Linux, you  might need to use a different command like `python3`.
 
 ## Running the Bot as a Service
 To ensure the bot runs continuously in the background, you can set it up as a `systemd` service.
@@ -127,22 +114,12 @@ sudo systemctl enable project-zomboid-bot
 sudo systemctl status project-zomboid-bot
 ```
 
-
----
-
-  
+Once again, be sure to update the values with what makes sense for your installation.
 
 ## Contributing
 
 Feel free to submit issues or pull requests for enhancements and bug fixes.
 
-
-
----
-
 ## License
 
-This project is licensed under the MIT License.
-```javascript
-Copy and paste this into your `README.md` file, and update the placeholders (e.g., `your-username`, `your_discord_bot_token`) with your actual values.
-```
+This project is licensed under the MIT License. I'd love to see how you extend or modify it if you do!
