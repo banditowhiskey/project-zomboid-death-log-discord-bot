@@ -35,11 +35,9 @@ def parse_log_entry(log_entry):
     data["zombie_kills"] = log_entry.split("Zombie Kills:")[1].split("\n")[0].strip()
     data["time_survived"] = log_entry.split("Survived Time:")[1].split("\n")[0].strip()
 
-    #format skills into a bullet list and make a newline at the beginning after the {
-    data["skills"] = data["skills"].replace("{", "{\n").replace(",", "\n")
+    #format skills into a bullet list and make a newline at the beginning after the { and before the }
+    data["skills"] = data["skills"].replace("{", "{\n").replace(",", "\n").replace("}", "\n}")
 
-    #format inventory into a bullet list
-    data["inventory"] = data["inventory"].replace(",", "\n")
     return data
 
 # Add an array of funny lines to say when someone dies
