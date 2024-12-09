@@ -68,7 +68,7 @@ async def monitor_log_file(file_path):
 async def on_ready():
     print(f"Logged in as {bot.user}")
     # Start monitoring the log file
-    log_file_path = "Lua/AdvancedDeathLog/Most-Recent-Deaths.txt"  # Replace with your actual file path
+    log_file_path = "../Lua/AdvancedDeathLog/Most-Recent-Deaths.txt"  # Replace with your actual file path
     bot.loop.create_task(monitor_log_file(log_file_path))
 
 # Run the bot
