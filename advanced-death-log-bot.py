@@ -1,4 +1,5 @@
 import os
+import asyncio
 from discord.ext import commands
 from discord import Intents
 
@@ -29,6 +30,17 @@ def parse_log_entry(log_entry):
     data["traits"] = log_entry.split("Traits:")[1].split("\n")[0].strip()
     data["skills"] = log_entry.split("Skills:")[1].split("\n")[0].strip()
     data["inventory"] = log_entry.split("Inventory:")[1].split("\n")[0].strip()
+    data["zombie_kills"] = log_entry.split("Zombie Kills:")[1].split("\n")[0].strip()
+    data["time_survived"] = log_entry.split("Survived Time:")[1].split("\n")[0].strip()
+
+    #format traits into a bullet list
+    data["traits"] = data["traits"].replace(",", "\n")
+
+    #format skills into a bullet list
+    data["skills"] = data["skills"].replace(",", "\n")
+
+    #format inventory into a bullet list
+    data["inventory"] = data["inventory"].replace(",", "\n")
     return data
 
 # Monitor the file and send messages
@@ -44,13 +56,17 @@ async def monitor_log_file(file_path):
 
             # When a new entry is added, parse it and send messages
             if "Death," in line:
-                log_entry = line + "".join([file.readline() for _ in range(20)])  # Read full log block
+                log_entry = line + "".join([file.readline() for _ in range(15)])  # Read full log block
                 data = parse_log_entry(log_entry)
 
                 # Send message to primary channel
                 primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
                 if primary_channel:
-                    await primary_channel.send(f"Player Death: {data['death_cause']}")
+                    details = (
+                        f"**{data['steam_name']}**\n was killed by {data['death_cause']}\n"
+                        f"They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies."
+                    )
+                    await primary_channel.send(details)
 
                 # Send detailed message to secondary channel
                 secondary_channel = bot.get_channel(SECONDARY_CHANNEL_ID)
