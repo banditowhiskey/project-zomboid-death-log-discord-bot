@@ -25,6 +25,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 def parse_log_entry(log_entry):
     # Extract desired fields from the log entry
     data = {}
+    data["timestamp"] = log_entry.split("Timestamp:")[1].split("\n")[0].strip()
     data["death_cause"] = log_entry.split("Death Cause:")[1].split("\n")[0].strip()
     data["steam_name"] = log_entry.split("Steam Name:")[1].split("\n")[0].strip()
     data["position"] = log_entry.split("Position:")[1].split("\n")[0].strip()
@@ -34,11 +35,8 @@ def parse_log_entry(log_entry):
     data["zombie_kills"] = log_entry.split("Zombie Kills:")[1].split("\n")[0].strip()
     data["time_survived"] = log_entry.split("Survived Time:")[1].split("\n")[0].strip()
 
-    #format traits into a bullet list
-    data["traits"] = data["traits"].replace(",", "\n")
-
-    #format skills into a bullet list
-    data["skills"] = data["skills"].replace(",", "\n")
+    #format skills into a bullet list and make a newline at the beginning after the {
+    data["skills"] = data["skills"].replace("{", "{\n").replace(",", "\n")
 
     #format inventory into a bullet list
     data["inventory"] = data["inventory"].replace(",", "\n")
@@ -93,7 +91,7 @@ async def monitor_log_file(file_path):
                 if primary_channel:
                     details = (
                         f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
-                        f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n{get_funny_line()}"
+                        f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > {get_funny_line()}"
                     )
                     await primary_channel.send(details)
 
@@ -102,6 +100,7 @@ async def monitor_log_file(file_path):
                 if secondary_channel:
                     details = (
                         f"**Steam Name:** {data['steam_name']}\n"
+                        f"**Time of Death:** {data['timestamp']}\n"
                         f"**Position:** {data['position']}\n"
                         f"**Traits:** {data['traits']}\n"
                         f"**Skills:** {data['skills']}\n"
