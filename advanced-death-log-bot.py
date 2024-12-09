@@ -1,5 +1,6 @@
 import os
 import asyncio
+import random
 from discord.ext import commands
 from discord import Intents
 
@@ -43,6 +44,34 @@ def parse_log_entry(log_entry):
     data["inventory"] = data["inventory"].replace(",", "\n")
     return data
 
+# Add an array of funny lines to say when someone dies
+funny_lines = [
+    "They're dead, Jim.",
+    "Looks like they won't be coming back from that one.",
+    "F to pay respects.",
+    "Survival is overrated anyway.",
+    "Another one bites the dust."
+    "They were too beautiful for this world.",
+    "Goodniught sweet prince.",
+    "They did not go gentle into that good night.",
+    "They are now one with the zombies.",
+    "They have left the building.",
+    "Looks like they weren’t built different.",
+    "Skill Issue.",
+    "They fought bravely... kinda.",
+    "R.I.P. buddy, you will be… forgotten soon.",
+    "A zombie's favorite snack.",
+    "Oops. Better luck next time.",
+    "Remember, death is just a respawn point. Oh wait…",
+    "L in chat.",
+    "Their watch has ended.",
+    "Game over, man! Game over!",
+]
+
+# Get random funny line
+def get_funny_line():
+    return random.choice(funny_lines)
+
 # Monitor the file and send messages
 async def monitor_log_file(file_path):
     with open(file_path, "r") as file:
@@ -63,8 +92,9 @@ async def monitor_log_file(file_path):
                 primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
                 if primary_channel:
                     details = (
-                        f"**{data['steam_name']}**\n was killed by {data['death_cause']}\n"
-                        f"They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies."
+                        f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
+                        f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies."
+                        f"> {get_funny_line()}"
                     )
                     await primary_channel.send(details)
 
