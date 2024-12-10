@@ -56,18 +56,19 @@ def parse_survived_time(time_str):
     hours = 0
     minutes = 0
 
-    # Parse months, days, hours, and minutes if they exist
-    if "month" in time_str:
-        months = int(time_str.split("month")[0].strip())
-        time_str = time_str.split("month")[1].strip()
-    if "day" in time_str:
-        days = int(time_str.split("day")[0].strip())
-        time_str = time_str.split("day")[1].strip()
-    if "hour" in time_str:
-        hours = int(time_str.split("hour")[0].strip())
-        time_str = time_str.split("hour")[1].strip()
-    if "minute" in time_str:
-        minutes = int(time_str.split("minute")[0].strip())
+    # Split the string into different time components
+    time_units = time_str.split(",")
+    
+    for unit in time_units:
+        unit = unit.strip()
+        if "month" in unit:
+            months = int(unit.split("month")[0].strip())
+        elif "day" in unit:
+            days = int(unit.split("day")[0].strip())
+        elif "hour" in unit:
+            hours = int(unit.split("hour")[0].strip())
+        elif "minute" in unit:
+            minutes = int(unit.split("minute")[0].strip())
     
     # Convert everything to real-life hours
     total_real_life_hours = (
