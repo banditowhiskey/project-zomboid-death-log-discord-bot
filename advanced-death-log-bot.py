@@ -14,6 +14,9 @@ DISCORD_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 PRIMARY_CHANNEL_ID = int(os.getenv("PRIMARY_CHANNEL_ID"))  # For the death cause
 SECONDARY_CHANNEL_ID = int(os.getenv("SECONDARY_CHANNEL_ID"))  # For detailed info
 
+# Load real-life hours per in-game day from environment
+REAL_LIFE_HOURS_PER_DAY = float(os.getenv("REAL_LIFE_HOURS_PER_DAY", "2.0"))  # Default to 2 hours if not provided
+
 if not DISCORD_TOKEN or not PRIMARY_CHANNEL_ID or not SECONDARY_CHANNEL_ID:
     raise RuntimeError("Missing bot token or channel IDs in environment variables")
 
@@ -36,10 +39,37 @@ def parse_log_entry(log_entry):
     data["zombie_kills"] = log_entry.split("Zombie Kills:")[1].split("\n")[0].strip()
     data["time_survived"] = log_entry.split("Survived Time:")[1].split("\n")[0].strip()
 
+    # Default to 0 for each component
+    in_game_days = 0
+    in_game_hours = 0
+    in_game_minutes = 0
+
+    # Parse the survival time
+    survived_time = data["time_survived"].lower()  # Normalize to lowercase
+    if "day" in survived_time:
+        in_game_days = int(survived_time.split("day")[0].strip())
+        survived_time = survived_time.split("day")[1].strip()
+    if "hour" in survived_time:
+        in_game_hours = int(survived_time.split("hour")[0].strip())
+        survived_time = survived_time.split("hour")[1].strip()
+    if "minute" in survived_time:
+        in_game_minutes = int(survived_time.split("minute")[0].strip())
+
+    # Store the parsed values
+    data["in_game_days"] = in_game_days
+    data["in_game_hours"] = in_game_hours
+    data["in_game_minutes"] = in_game_minutes
+
     #format skills into a bullet list and make a newline at the beginning after the { and before the }
     data["skills"] = data["skills"].replace("{", "{\n").replace(",", "\n").replace("}", "\n}")
 
     return data
+
+def calculate_real_life_hours(in_game_days, in_game_hours, in_game_minutes, real_life_hours_per_day):
+    real_life_hours = (in_game_days * real_life_hours_per_day) \
+        + (in_game_hours * (real_life_hours_per_day / 24)) \
+        + (in_game_minutes * (real_life_hours_per_day / (24 * 60)))
+    return real_life_hours
 
 # Add an array of funny lines to say when someone dies
 funny_lines = [
@@ -115,9 +145,18 @@ async def monitor_log_file(file_path):
                         # Send message to primary channel
                         primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
                         if primary_channel:
+
+                            real_life_hours = calculate_real_life_hours(
+                                data["in_game_days"],
+                                data["in_game_hours"],
+                                data["in_game_minutes"],
+                                REAL_LIFE_HOURS_PER_DAY
+                            )
+                            real_life_time_str = f"{real_life_hours:.2f} real-life hours"
+
                             details = (
                                 f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
-                                f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > {get_funny_line()}"
+                                f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {real_life_time_str} wasted. \n > {get_funny_line()}"
                             )
                             await primary_channel.send(details)
 
