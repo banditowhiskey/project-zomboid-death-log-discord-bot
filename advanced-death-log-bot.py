@@ -48,7 +48,7 @@ funny_lines = [
     "Survival is overrated anyway.",
     "Another one bites the dust."
     "They were too beautiful for this world.",
-    "Goodniught sweet prince.",
+    "Goodnight sweet prince.",
     "They did not go gentle into that good night.",
     "They are now one with the zombies.",
     "They have left the building.",
