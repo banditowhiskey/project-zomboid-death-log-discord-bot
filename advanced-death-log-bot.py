@@ -155,7 +155,7 @@ async def monitor_log_file(file_path):
                         if primary_channel:
                             details = (
                                 f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
-                                f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} hours wasted. \n > {get_funny_line()}"
+                                f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
                             )
                             await primary_channel.send(details)
 
