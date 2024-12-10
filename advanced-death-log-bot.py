@@ -1,4 +1,5 @@
 import os
+import time
 import asyncio
 import random
 from discord.ext import commands
@@ -70,41 +71,49 @@ def get_funny_line():
 
 # Monitor the file and send messages
 async def monitor_log_file(file_path):
-    with open(file_path, "r") as file:
-        # Seek to the end of the file initially
-        file.seek(0, 2)
-        while True:
-            line = file.readline()
-            if not line:
-                await asyncio.sleep(1)  # Wait for new log entries
-                continue
+    while True:
+        try:
+            # Open the file and start monitoring
+            with open(file_path, "r") as file:
+                file.seek(0, 2)  # Seek to the end of the file
+                while True:
+                    line = file.readline()
+                    if not line:
+                        await asyncio.sleep(2)  # Wait for new log entries, check every 2 seconds
+                        continue
 
-            # When a new entry is added, parse it and send messages
-            if "Death," in line:
-                log_entry = line + "".join([file.readline() for _ in range(15)])  # Read full log block
-                data = parse_log_entry(log_entry)
+                    # When a new entry is added, parse it and send messages
+                    if "Death," in line:
+                        log_entry = line + "".join([file.readline() for _ in range(15)])  # Read full log block
+                        data = parse_log_entry(log_entry)
 
-                # Send message to primary channel
-                primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
-                if primary_channel:
-                    details = (
-                        f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
-                        f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > {get_funny_line()}"
-                    )
-                    await primary_channel.send(details)
+                        # Send message to primary channel
+                        primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
+                        if primary_channel:
+                            details = (
+                                f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
+                                f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > {get_funny_line()}"
+                            )
+                            await primary_channel.send(details)
 
-                # Send detailed message to secondary channel
-                secondary_channel = bot.get_channel(SECONDARY_CHANNEL_ID)
-                if secondary_channel:
-                    details = (
-                        f"**Steam Name:** {data['steam_name']}\n"
-                        f"**Time of Death:** {data['timestamp']}\n"
-                        f"**Position:** {data['position']}\n"
-                        f"**Traits:** {data['traits']}\n"
-                        f"**Skills:** {data['skills']}\n"
-                        #f"**Inventory:** {data['inventory']}"
-                    )
-                    await secondary_channel.send(details)
+                        # Send detailed message to secondary channel
+                        secondary_channel = bot.get_channel(SECONDARY_CHANNEL_ID)
+                        if secondary_channel:
+                            details = (
+                                f"**Steam Name:** {data['steam_name']}\n"
+                                f"**Time of Death:** {data['timestamp']}\n"
+                                f"**Position:** {data['position']}\n"
+                                f"**Traits:** {data['traits']}\n"
+                                f"**Skills:** {data['skills']}\n"
+                                # f"**Inventory:** {data['inventory']}"
+                            )
+                            await secondary_channel.send(details)
+        except FileNotFoundError:
+            print(f"Log file not found: {file_path}. Retrying...")
+            await asyncio.sleep(5)  # Wait before retrying
+        except Exception as e:
+            print(f"Error while monitoring log file: {e}")
+            await asyncio.sleep(5)  # Pause before retrying
 
 @bot.event
 async def on_ready():
