@@ -41,8 +41,15 @@ def parse_log_entry(log_entry):
     data["zombie_kills"] = log_entry.split("Zombie Kills:")[1].split("\n")[0].strip()
     data["time_survived"] = log_entry.split("Survived Time:")[1].split("\n")[0].strip()
 
-    #format skills into a bullet list and make a newline at the beginning after the { and before the }
-    data["skills"] = data["skills"].replace("{", "{\n").replace(",", "\n").replace("}", "\n}")
+    # Alphabetize skills and format into a bullet list
+    skills_list = data["skills"].replace("{", "").replace("}", "").split(",")
+    skills_list = sorted([skill.strip() for skill in skills_list])
+    data["skills"] = "{\n" + "\n".join(skills_list) + "\n}"
+
+    # Alphabetize traits
+    traits_list = data["traits"].split(",")
+    traits_list = sorted([trait.strip() for trait in traits_list])
+    data["traits"] = ", ".join(traits_list)
 
     # Parse survival time into real-life hours
     data["real_life_hours"] = parse_survived_time(data["time_survived"])
