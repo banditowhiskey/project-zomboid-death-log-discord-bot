@@ -116,6 +116,10 @@ sudo systemctl status project-zomboid-bot
 
 Once again, be sure to update the values with what makes sense for your installation.
 
+## Changelog
+### 1.1.0
+- Traits and Skills now display in alphabetical order
+
 ## Contributing
 
 Feel free to submit issues or pull requests for enhancements and bug fixes.
