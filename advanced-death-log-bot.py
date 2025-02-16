@@ -46,9 +46,9 @@ def parse_log_entry(log_entry):
     skills_list = sorted([skill.strip() for skill in skills_list])
     data["skills"] = "{\n" + "\n".join(skills_list) + "\n}"
 
-    # Alphabetize traits
-    traits_list = data["traits"].split(",")
-    traits_list = sorted([trait.strip() for trait in traits_list])
+    # Remove {} brackets, alphabetize traits
+    traits_list = data["traits"].replace("{", "").replace("}", "").split(",")
+    traits_list = sorted([trait.strip() for trait in traits_list if trait.strip()])
     data["traits"] = ", ".join(traits_list)
 
     # Parse survival time into real-life hours
