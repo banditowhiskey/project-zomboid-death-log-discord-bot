@@ -84,9 +84,9 @@ class Log:
         print(f"  Warning Count: {Log.warning_count}")
 
 def main():
-    r'''
-    Description:
-    This main function exists to inform any user to avoid running this python script directly.
+    r''' @fn def main()
+    @brief This main function exists to inform any user to avoid running this python script directly.
+
     '''
     log = Log()
 
