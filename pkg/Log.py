@@ -1,8 +1,11 @@
 r''' @file Log.py
+@author SV-Engineer
+
 @brief Adds built in logging mechanisms to classes.
 
 @par Description
 The built in logging class in python is meh at best.
+
 '''
 
 # TODO: Implement log file functionality

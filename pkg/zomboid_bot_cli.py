@@ -1,5 +1,8 @@
 r''' @file zomboid_bot_cli.py
+@author SV-Engineer
+
 @brief Adds CLI options to the bot.
+
 '''
 from argparse import ArgumentParser
 from Log import Log
