@@ -5,8 +5,14 @@ from argparse import ArgumentParser
 from Log import Log
 
 class ZomboidBotCLI(Log):
-    def __init__(self):
+    def __init__(self, arg_defaults={"number_of_channels" : 2}):
+        r''' @fn __init__
+        @brief Class constructor that intakes a dictionary to set dafault values for the arguments if NOT passed via the CLI.
+
+        '''
         super().__init__(__name__)
+
+        self.arg_defaults = arg_defaults
     
     def get_cli_args(self, get_parser=False):
         r''' @fn def get_cli_args(self, get_parsed=True)
@@ -20,7 +26,7 @@ class ZomboidBotCLI(Log):
 
         parser = ArgumentParser()
         # -n and --number_of_channels are aliased, either works
-        parser.add_argument('-n', '--number_of_channels', type=int, default=2, required=False, help="Number of Discord channels to use")
+        parser.add_argument('-n', '--number_of_channels', type=int, default=self.arg_defaults["number_of_channels"], required=False, help="Number of Discord channels to use")
 
         # Expected common case; common case first
         if not get_parser:
