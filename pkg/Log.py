@@ -44,7 +44,7 @@ class Log:
 
         '''
         message_dict = {
-            "msg_type" : "info",
+            "msg_type" : "*INFO      ",
             "message"  : message
         }
         self.__msg(message_dict)
@@ -55,7 +55,7 @@ class Log:
 
         '''
         message_dict = {
-            "msg_type" : "Warning!!!",
+            "msg_type" : "*WARNING!!!",
             "message"  : message
         }
         self.__msg(message_dict)
@@ -69,7 +69,7 @@ class Log:
 
         '''
         message_dict = {
-            "msg_type" : "ERROR!!!",
+            "msg_type" : "*ERROR!!!  ",
             "message"  : message
         }
         self.__msg(message_dict)
