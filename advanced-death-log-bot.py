@@ -9,18 +9,43 @@ from discord import Intents
 from dotenv import load_dotenv
 load_dotenv()
 
+import sys
+sys.path.insert(0, "./pkg")
+
+from zomboid_bot_cli import ZomboidBotCLI
+
+
 # Bot token and channel IDs
-DISCORD_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-PRIMARY_CHANNEL_ID = int(os.getenv("PRIMARY_CHANNEL_ID"))  # For the death cause
-SECONDARY_CHANNEL_ID = int(os.getenv("SECONDARY_CHANNEL_ID"))  # For detailed info
+DISCORD_TOKEN                             = os.getenv("DISCORD_BOT_TOKEN")
+PRIMARY_CHANNEL_ID                        = int(os.getenv("PRIMARY_CHANNEL_ID"))  # For the death cause
+SECONDARY_CHANNEL_ID                      = int(os.getenv("SECONDARY_CHANNEL_ID"))  # For detailed info
+
+# Global constants
+DEFAULT_NUMBER_OF_DISCORD_CHANNELS        = 2
+
+bot_cli = ZomboidBotCLI()
+
+args = bot_cli.get_cli_args()
 
 # Load real-life hours per in-game day from environment
 REAL_LIFE_HOURS_PER_IN_GAME_DAY = float(os.getenv("REAL_LIFE_HOURS_PER_IN_GAME_DAY", 2.0))  # Real-life hours per in-game day, with a default of 2.0
 # Calculate real-life hours per in-game hour based on real-life hours per in-game day
 REAL_LIFE_HOURS_PER_IN_GAME_HOUR = REAL_LIFE_HOURS_PER_IN_GAME_DAY / 24
 
-if not DISCORD_TOKEN or not PRIMARY_CHANNEL_ID or not SECONDARY_CHANNEL_ID:
-    raise RuntimeError("Missing bot token or channel IDs in environment variables")
+
+# I reworked this a bit to help myself debug the changes to add the CLI arguments. The intent of the CLI arguments addition is to maintain 
+# legacy functionality while also enabling easier configuration for the use case of the user. The goal is to make it so configurable that
+# future users need not modify the code.
+if not DISCORD_TOKEN: 
+    raise RuntimeError("Missing bot token in environment variables")
+
+if not PRIMARY_CHANNEL_ID:
+    raise RuntimeError("Channel ID 1 in environment variables")
+
+if args.number_of_channels == 2 and not SECONDARY_CHANNEL_ID:    
+    raise RuntimeError("Channel ID 2 in environment variables")
+
+
 
 # Initialize the bot
 intents = Intents.default()
