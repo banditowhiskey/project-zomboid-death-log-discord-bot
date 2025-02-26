@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0, "./pkg")
 
 from zomboid_bot_cli import ZomboidBotCLI
-
+from Log import Log
 
 # Bot token and channel IDs
 DISCORD_TOKEN                             = os.getenv("DISCORD_BOT_TOKEN")
@@ -22,6 +22,7 @@ SECONDARY_CHANNEL_ID                      = int(os.getenv("SECONDARY_CHANNEL_ID"
 
 # Global constants
 DEFAULT_NUMBER_OF_DISCORD_CHANNELS        = 2
+DEFAULT_LUA_LOG_FILE_PATH                 = "../Lua/AdvancedDeathLog/Most-Recent-Deaths.txt"
 
 bot_cli = ZomboidBotCLI()
 
@@ -33,22 +34,33 @@ REAL_LIFE_HOURS_PER_IN_GAME_DAY = float(os.getenv("REAL_LIFE_HOURS_PER_IN_GAME_D
 REAL_LIFE_HOURS_PER_IN_GAME_HOUR = REAL_LIFE_HOURS_PER_IN_GAME_DAY / 24
 
 
+log = Log("Main")
+
 # I reworked this a bit to help myself debug the changes to add the CLI arguments. The intent of the CLI arguments addition is to maintain 
 # legacy functionality while also enabling easier configuration for the use case of the user. The goal is to make it so configurable that
 # future users need not modify the code.
 if not DISCORD_TOKEN: 
+    log.e("DISCORD_BOT_TOKEN Environment variable not found")
+    log.info("Put your discord bot token in a .env file in the root of this project")
     raise RuntimeError("Missing bot token in environment variables")
 
 if not PRIMARY_CHANNEL_ID:
+    log.e("PRIMARY_CHANNEL_ID Environment variable not found")
+    log.info("Put your primary channel ID in a .env file in the root of this project; .env is in gitignore because it is private and unique per bot made")
+    log.info('Enable Developer Mode in Discord if not done so already and then right click the channel to output to and select context menu option: "Copy Channel ID"')
+    log.info('The Project Zomboid Server ".ini" file needs a channel ID as well')
     raise RuntimeError("Channel ID 1 in environment variables")
 
 if args.number_of_channels == 2 and not SECONDARY_CHANNEL_ID:    
+    log.e("SECONDARY_CHANNEL_ID Environment variable not found")
+    log.info("Put your secondary channel ID in a .env file in the root of this project; .env is in gitignore because it is private and unique per bot made")
+    log.info('Enable Developer Mode in Discord if not done so already and then right click the channel to output to and select context menu option: "Copy Channel ID"')
     raise RuntimeError("Channel ID 2 in environment variables")
 
 
 
 # Initialize the bot
-intents = Intents.default()
+intents = Intents.all()
 intents.messages = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -168,28 +180,40 @@ def get_funny_line():
 async def monitor_log_file(file_path):
     while True:
         try:
+            log.info("open file and monitor")
             # Open the file and start monitoring
             with open(file_path, "r") as file:
                 file.seek(0, 2)  # Seek to the end of the file
                 while True:
+                    log.info("I am awake...")
+
                     line = file.readline()
+
                     if not line:
+                        log.info("...going back to sleep")
                         await asyncio.sleep(2)  # Wait for new log entries, check every 2 seconds
                         continue
 
                     # When a new entry is added, parse it and send messages
                     if "Death," in line:
+                        log.info("Found Death")
                         log_entry = line + "".join([file.readline() for _ in range(15)])  # Read full log block
                         data = parse_log_entry(log_entry)
 
+
                         # Send message to primary channel
+                        log.info("try send message")
                         primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
                         if primary_channel:
                             details = (
                                 f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
                                 f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
                             )
+                            log.info(f"Log Entry: {details}")
                             await primary_channel.send(details)
+
+                        else:
+                            log.info("Primary Channel DNE?")
 
                         # Send detailed message to secondary channel
                         secondary_channel = bot.get_channel(SECONDARY_CHANNEL_ID)
@@ -203,6 +227,13 @@ async def monitor_log_file(file_path):
                                 # f"**Inventory:** {data['inventory']}"
                             )
                             await secondary_channel.send(details)
+
+                        else:
+                            log.info("Secondary Channel DNE?")
+
+                    else:
+                        log.info("Death not found")
+
         except FileNotFoundError:
             print(f"Log file not found: {file_path}. Retrying...")
             await asyncio.sleep(5)  # Wait before retrying
@@ -214,8 +245,9 @@ async def monitor_log_file(file_path):
 async def on_ready():
     print(f"Logged in as {bot.user}")
     # Start monitoring the log file
-    log_file_path = "../Lua/AdvancedDeathLog/Most-Recent-Deaths.txt"  # Replace with your actual file path
+    log_file_path = DEFAULT_LUA_LOG_FILE_PATH  # Replace with your actual file path
     bot.loop.create_task(monitor_log_file(log_file_path))
+
 
 # Run the bot
 bot.run(DISCORD_TOKEN)
