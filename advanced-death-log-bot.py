@@ -66,15 +66,16 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 def parse_log_entry(log_entry):
     # Extract desired fields from the log entry
     data = {}
-    data["timestamp"] = log_entry.split("Timestamp:")[1].split("\n")[0].strip()
-    data["death_cause"] = log_entry.split("Death Cause:")[1].split("\n")[0].strip()
-    data["steam_name"] = log_entry.split("Steam Name:")[1].split("\n")[0].strip()
-    data["position"] = log_entry.split("Position:")[1].split("\n")[0].strip()
-    data["traits"] = log_entry.split("Traits:")[1].split("\n")[0].strip()
-    data["skills"] = log_entry.split("Skills:")[1].split("\n")[0].strip()
-    data["inventory"] = log_entry.split("Inventory:")[1].split("\n")[0].strip()
-    data["zombie_kills"] = log_entry.split("Zombie Kills:")[1].split("\n")[0].strip()
-    data["time_survived"] = log_entry.split("Survived Time:")[1].split("\n")[0].strip()
+    data["timestamp"]           = log_entry.split("Timestamp:")[1].split("\n")[0].strip()
+    data["death_cause"]         = log_entry.split("Death Cause:")[1].split("\n")[0].strip()
+    data["steam_name"]          = log_entry.split("Steam Name:")[1].split("\n")[0].strip()
+    data["character_name"]      = log_entry.split("Character Name:")[1].split("\n")[0].strip()
+    data["position"]            = log_entry.split("Position:")[1].split("\n")[0].strip()
+    data["traits"]              = log_entry.split("Traits:")[1].split("\n")[0].strip()
+    data["skills"]              = log_entry.split("Skills:")[1].split("\n")[0].strip()
+    data["inventory"]           = log_entry.split("Inventory:")[1].split("\n")[0].strip()
+    data["zombie_kills"]        = log_entry.split("Zombie Kills:")[1].split("\n")[0].strip()
+    data["time_survived"]       = log_entry.split("Survived Time:")[1].split("\n")[0].strip()
 
     # Alphabetize skills and format into a bullet list
     skills_list = data["skills"].replace("{", "").replace("}", "").split(",")
@@ -204,7 +205,7 @@ async def monitor_log_file(file_path):
                         primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
                         if primary_channel:
                             details = (
-                                f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
+                                f"**{data['steam_name']}** ({data['character_name']}) was killed by {data['death_cause']}\n"
                                 f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
                             )
                             log.info(f"Log Entry: {details}")
