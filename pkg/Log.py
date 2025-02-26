@@ -20,6 +20,8 @@ class Log:
     # Enables an error log file, if desired
     enable_error_log_file = True
 
+    ENABLE_DEBUG_MESSAGES = False
+
     def __init__(self, name=__name__):
         r''' @fn def __init__(self, name=__name__)
         @brief Class constructor
@@ -38,7 +40,7 @@ class Log:
         '''
         print("{}  --  {}".format(msg_dict["msg_type"], msg_dict["message"]))
 
-    def info(self, message:str):
+    def info(self, message:str)->None:
         r''' @fn def info(self, message:str)
         @brief Prints out information to the console window and log file (if enabled).
 
@@ -49,7 +51,7 @@ class Log:
         }
         self.__msg(message_dict)
     
-    def warn(self, message:str):
+    def warn(self, message:str)->None:
         r''' @fn def warn(self, message:str)
         @brief Prints out warnings to the console window and error log file (if enabled).
 
@@ -63,7 +65,7 @@ class Log:
         # Add to warning count
         Log.warning_count += 1
 
-    def err(self, message:str):
+    def err(self, message:str)->None:
         r''' @fn def err(self, message:str)
         @brief Prints out errors to the console window and error log file (if enabled).
 
@@ -76,6 +78,32 @@ class Log:
 
         # Add to error count
         Log.error_count += 1
+
+    def debug_message(self, message:str)->None:
+        r''' @fn def debug_message(self: message:str)->None:
+        @brief Prints out debug messages to the console window that may be toggled with static member ENABLE_DEBUG_MESSAGES.
+
+        '''
+        if Log.ENABLE_DEBUG_MESSAGES:
+            message_dict = {
+            "msg_type" : "*DEBUG!!!  ",
+            "message"  : message
+            }
+
+            self.__msg(message_dict)
+
+        else:
+            return
+
+    def banner(self, message:str)->None:
+        r''' @fn def banner(self, message:str)->None:
+        @brief Prints out banner messages to console.
+
+        '''
+        print("\n+ =====================================================================")
+        print("| BANNER:")
+        print(f"| {message}") 
+        print("+ =====================================================================\n")
 
     def dump_status(self):
         r''' @fn def dump_status(self)

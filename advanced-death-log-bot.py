@@ -11,6 +11,10 @@ load_dotenv()
 
 import sys
 sys.path.insert(0, "./pkg")
+sys.path.insert(0, "./inc")
+
+from constant_configuration import DEFAULT_NUMBER_OF_DISCORD_CHANNELS
+from constant_configuration import DEFAULT_LUA_LOG_FILE_PATH
 
 from zomboid_bot_cli import ZomboidBotCLI
 from Log import Log
@@ -20,13 +24,8 @@ DISCORD_TOKEN                             = os.getenv("DISCORD_BOT_TOKEN")
 PRIMARY_CHANNEL_ID                        = int(os.getenv("PRIMARY_CHANNEL_ID"))  # For the death cause
 SECONDARY_CHANNEL_ID                      = int(os.getenv("SECONDARY_CHANNEL_ID"))  # For detailed info
 
-# Global constants
-DEFAULT_NUMBER_OF_DISCORD_CHANNELS        = 2
-DEFAULT_LUA_LOG_FILE_PATH                 = "../Lua/AdvancedDeathLog/Most-Recent-Deaths.txt"
-
+# For migrating to a configurable implementation
 bot_cli = ZomboidBotCLI()
-
-args = bot_cli.get_cli_args()
 
 # Load real-life hours per in-game day from environment
 REAL_LIFE_HOURS_PER_IN_GAME_DAY = float(os.getenv("REAL_LIFE_HOURS_PER_IN_GAME_DAY", 2.0))  # Real-life hours per in-game day, with a default of 2.0
@@ -51,12 +50,11 @@ if not PRIMARY_CHANNEL_ID:
     log.info('The Project Zomboid Server ".ini" file needs a channel ID as well')
     raise RuntimeError("Channel ID 1 in environment variables")
 
-if args.number_of_channels == 2 and not SECONDARY_CHANNEL_ID:    
+if bot_cli.args.number_of_channels == 2 and not SECONDARY_CHANNEL_ID:    
     log.e("SECONDARY_CHANNEL_ID Environment variable not found")
     log.info("Put your secondary channel ID in a .env file in the root of this project; .env is in gitignore because it is private and unique per bot made")
     log.info('Enable Developer Mode in Discord if not done so already and then right click the channel to output to and select context menu option: "Copy Channel ID"')
     raise RuntimeError("Channel ID 2 in environment variables")
-
 
 
 # Initialize the bot
@@ -180,17 +178,17 @@ def get_funny_line():
 async def monitor_log_file(file_path):
     while True:
         try:
-            log.info("open file and monitor")
+            log.banner("open file and monitor")
             # Open the file and start monitoring
             with open(file_path, "r") as file:
                 file.seek(0, 2)  # Seek to the end of the file
                 while True:
-                    log.info("I am awake...")
+                    log.debug_message("I am awake...")
 
                     line = file.readline()
 
                     if not line:
-                        log.info("...going back to sleep")
+                        log.debug_message("...going back to sleep")
                         await asyncio.sleep(2)  # Wait for new log entries, check every 2 seconds
                         continue
 
@@ -235,17 +233,19 @@ async def monitor_log_file(file_path):
                         log.info("Death not found")
 
         except FileNotFoundError:
-            print(f"Log file not found: {file_path}. Retrying...")
+            log.warn(f"Log file not found: {file_path}. Retrying...")
             await asyncio.sleep(5)  # Wait before retrying
         except Exception as e:
-            print(f"Error while monitoring log file: {e}")
+            log.err(f"Error while monitoring log file: {e}")
             await asyncio.sleep(5)  # Pause before retrying
 
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user}")
+    log.info(f"Logged in as {bot.user}")
     # Start monitoring the log file
-    log_file_path = DEFAULT_LUA_LOG_FILE_PATH  # Replace with your actual file path
+    log_file_path = bot_cli.args.path_to_lua_log_file
+
+    log.info(f"Log file for death path resolved to: {log_file_path}")
     bot.loop.create_task(monitor_log_file(log_file_path))
 
 
