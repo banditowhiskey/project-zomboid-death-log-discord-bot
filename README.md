@@ -21,10 +21,26 @@ This bot monitors a log file from a Project Zomboid server and posts relevant in
 - `python-dotenv` library
 - A discord bot that you have registered and have the token for
 
+### Adding Advanced Death Log Mod To Your Zomboid Server
+It seems users don't need to subscribe to the mod, it just needs to be on your server.
+    1. After running `start-server.sh -servername <YOUR_SERVER_NAME_HERE>` once, use `ctrl + c` to stop it.
+    2. You should now have a directory called `Zomboid` in your home; use `nano ~/Zomboid/Server/<YOUR_SERVER_NAME_HERE>.ini`
+    3. Press `ctrl + w` (assuming nano), type "mods", and press enter.
+    4. Add `AdvancedDeathLog` to the mods list.
+
+### Adding This Bot To Your Zomboid Server
+    1. Use `nano ~/Zomboid/Server/<YOUR_SERVER_NAME_HERE>.ini`
+    2. Press `ctrl + w` (assuming nano), type "Discord", and press enter.
+    3. Set: `DiscordEnable=true`
+    4. Set: `DiscordToken=<YOUR_DISCORD_BOT_TOKEN>`
+    5. Set: `DiscordChannel=<NAME_OF_DISCORD_CHANNEL_FOR_IO>`
+        * Name of primary channel referenced in environment variable "PRIMARY_CHANNEL_ID"; see setup environment variables below.
+    6. Set: `DiscordChannelID=<PRIMARY_CHANNEL_ID>`
+        * Same value as primary channel referenced in environment variable "PRIMARY_CHANNEL_ID"; see setup environment variables below.
 
 ## Installation
 
-1.  **Clone the Repository**:
+1. **Clone the Repository**:
 
 In your Zomboid directory (typically `/home/username/Zomboid`) clone the repo. It needs to be in here because the bot currently uses a relative path to the logs.
 
