@@ -204,10 +204,27 @@ async def monitor_log_file(file_path):
                         log.info("try send message")
                         primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
                         if primary_channel:
-                            details = (
-                                f"**{data['steam_name']}** ({data['character_name']}) was killed by {data['death_cause']}\n"
-                                f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
-                            )
+                            if bot_cli.args.only_character_names:
+                                details = (
+                                    # -o take priority over -c  --  It will be easier to just communicate this rather than try to support multiple permutations.
+                                    f"**{data['character_name']}** was killed by {data['death_cause']}\n"
+                                    f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
+                                )
+
+                            # !!! DEFAULT OPTION
+                            elif bot_cli.args.character_names:
+                                details = (
+                                    f"**{data['steam_name']}** ({data['character_name']}) was killed by {data['death_cause']}\n"
+                                    f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
+                                )
+
+                            # No Character names included !!! This was legacy behavior and I think including both profile names and character names is better default behavior
+                            else:
+                                details = (
+                                    f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
+                                    f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
+                                )
+
                             log.info(f"Log Entry: {details}")
                             await primary_channel.send(details)
 
