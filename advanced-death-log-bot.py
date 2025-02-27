@@ -63,7 +63,7 @@ def check_for_environment_variables(bot_cli)->None:
         raise RuntimeError("Channel ID 2 in environment variables")
 
 
-def initialize_bot()->None:
+def initialize_bot():
     r'''
     Initialize the bot
     '''
@@ -71,10 +71,17 @@ def initialize_bot()->None:
     intents.messages = True
     bot = commands.Bot(command_prefix="!", intents=intents)
 
+    return bot
+
+# TODO: Figure out how to compartmentalize the global class handles
+bot = initialize_bot()
+
 # Function to parse and format the log entry
 def parse_log_entry(log_entry):
     # Extract desired fields from the log entry
-    data = {}
+    highest_skill_levels = []
+    data                 = {}
+
     data["timestamp"]           = log_entry.split("Timestamp:")[1].split("\n")[0].strip()
     data["death_cause"]         = log_entry.split("Death Cause:")[1].split("\n")[0].strip()
     data["steam_name"]          = log_entry.split("Steam Name:")[1].split("\n")[0].strip()
@@ -87,37 +94,65 @@ def parse_log_entry(log_entry):
     data["time_survived"]       = log_entry.split("Survived Time:")[1].split("\n")[0].strip()
 
     # Alphabetize skills and format into a bullet list
-    skills_list    = data["skills"].replace("{", "").replace("}", "").split(",")
-    skills_list    = sorted([skill.strip() for skill in skills_list])
-    data["skills"] = "{\n" + "\n".join(skills_list) + "\n}"
+    skills_list          = data["skills"].replace("{", "").replace("}", "").split(",")
+    skills_list          = sorted([skill.strip() for skill in skills_list])
+    data["skills"]       = "{\n" + "\n".join(skills_list) + "\n}"
+    highest_skill_levels = find_highest_level_skill(data["skills"])
 
     # Remove {} brackets, alphabetize traits
-    traits_list    = data["traits"].replace("{", "").replace("}", "").split(",")
-    traits_list    = sorted([trait.strip() for trait in traits_list if trait.strip()])
-    data["traits"] = ", ".join(traits_list)
+    traits_list          = data["traits"].replace("{", "").replace("}", "").split(",")
+    traits_list          = sorted([trait.strip() for trait in traits_list if trait.strip()])
+    data["traits"]       = ", ".join(traits_list)
 
     # Parse survival time into real-life hours
     data["real_life_hours"] = parse_survived_time(data["time_survived"])
 
-    return data
+    return data, highest_skill_levels
 
 def find_highest_level_skill(skills_list:list)->dict:
-    biggest   = {}
-    temporary = {}
-    current   = 0
-    next      = 0
+    biggest        = []
+    current_max    = 0
+    next_skill_lvl = 0
+    skill_name     = None
+    strengh_level  = 0
+    fitness_level  = 0
 
-    skills = skills_list.split("\n")
+    # I realize there are likely better ways to do this and I am lazy and thus doing it the way I know how.
+    # TODO: Come back and fix this laziness me.
+    skills         = skills_list.split("\n")
 
     for skill in skills:
         # Strength and fitness are always pretty high so I'm excluding those.
-        if "strength" not in skill.lower() and "fitness" not in skill.lower():
-            log.info(f"Checking if {skill} is largest")
-            # temporary = {skill : }
-            # next = re.findall(r'\d+', skill)
+        if "strength" not in skill.lower() and "fitness" not in skill.lower() and "{" not in skill.lower() and "}" not in skill.lower():
+            skill_name     = re.findall(r'\S+', skill)[0]
+            next_skill_lvl = int(re.findall(r'\d+', skill)[0])
 
-            # if next > current:
-            #     current = next
+            log.debug_message(f"Checking if {skill_name} is largest  -- RE found {next_skill_lvl}")
+
+            # This statement should guarantee nothing at level 0 makes it in.
+            if next_skill_lvl > current_max:
+                if biggest != []:
+                    # If the list is not empty and a bigger value is found, pop off the list.
+                    # FIXME: I'm pretty sure there is a built in method that will acheive the same end goal
+                    # of a list of the highest skill(s)... a proper dict implementation if you will.
+                    while(len(biggest)):
+                        biggest.pop(0)
+
+                current_max = next_skill_lvl
+                biggest.append({skill_name : current_max})
+
+        elif "strength" in skill.lower():
+            strengh_level = int(re.findall(r'\d+', skill)[0])
+            log.info(f"Strength Level: {strengh_level}")
+
+        elif "fitness" in skill.lower():
+            fitness_level = int(re.findall(r'\d+', skill)[0])
+            log.info(f"Fitness Level: {fitness_level}")
+
+    biggest.append({"Strength" : strengh_level})
+    biggest.append({"Fitness"  : fitness_level})
+
+    return biggest
 
 
 # Function to parse and calculate real-life hours from survival time
@@ -176,9 +211,18 @@ async def monitor_log_file(file_path):
                     if "Death," in line:
                         log.info("Found Death")
                         log_entry = line + "".join([file.readline() for _ in range(15)])  # Read full log block
-                        data = parse_log_entry(log_entry)
+                        data, highest_skill_levels = parse_log_entry(log_entry)
+                        notable_skills = ""
+                        tmp_skill      = ""
 
+                        for skill in highest_skill_levels:
+                            for key in skill:
+                                tmp_key        = f"{key}".ljust(10)
+                                notable_skills = f"{notable_skills}\n  {tmp_key}  --  {skill[key]}"
 
+                        notable_skills = f"{notable_skills}\n"
+
+                        log.debug_message(f"Notable Skills String: {notable_skills}")
                         # Send message to primary channel
                         log.info("try send message")
                         primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
@@ -187,6 +231,7 @@ async def monitor_log_file(file_path):
                                 details = (
                                     # -o take priority over -c  --  It will be easier to just communicate this rather than try to support multiple permutations.
                                     f"**{data['character_name']}** was killed by {data['death_cause']}\n"
+                                    f"> Notable Skill Levels: {notable_skills}"
                                     f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
                                 )
 
@@ -194,6 +239,7 @@ async def monitor_log_file(file_path):
                             elif bot_cli.args.character_names:
                                 details = (
                                     f"**{data['steam_name']}** ({data['character_name']}) was killed by {data['death_cause']}\n"
+                                    f"> Notable Skill Levels {notable_skills}"
                                     f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
                                 )
 
@@ -201,11 +247,14 @@ async def monitor_log_file(file_path):
                             else:
                                 details = (
                                     f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
+                                    f"> Notable Skill Levels {notable_skills}"
                                     f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
                                 )
 
-                            log.info(f"Log Entry: {details}")
-                            await primary_channel.send(details)
+                            log.debug_message(f"Log Entry: {details}")
+
+                            if not bot_cli.args.test_mode:
+                                await primary_channel.send(details)
 
                         else:
                             log.info("Primary Channel DNE?")
@@ -224,7 +273,10 @@ async def monitor_log_file(file_path):
                                     f"**Skills:** {data['skills']}\n"
                                     # f"**Inventory:** {data['inventory']}"
                                 )
-                                await secondary_channel.send(details)
+                                log.debug_message(f"Log Entry: {details}")
+                                
+                                if not bot_cli.args.test_mode:
+                                    await secondary_channel.send(details)
 
                             else:
                                 log.warn("Secondary Channel DNE?")
@@ -259,5 +311,4 @@ def main()->None:
 
 if __name__ == "__main__":
     check_for_environment_variables(bot_cli)
-    initialize_bot()
     main()
