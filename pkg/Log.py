@@ -38,7 +38,7 @@ class Log:
         TBH I was trying something new here.
 
         '''
-        print("{}  --  {}".format(msg_dict["msg_type"], msg_dict["message"]))
+        print(f"{msg_dict["msg_type"]}  --  {msg_dict["message"]}")
 
     def info(self, message:str)->None:
         r''' @fn def info(self, message:str)
@@ -111,8 +111,8 @@ class Log:
 
         '''
         print("Script complete")
-        print("    Error Count: {}".format(Log.error_count))
-        print("  Warning Count: {}".format(Log.warning_count))
+        print(f"    Error Count: {Log.error_count}")
+        print(f"  Warning Count: {Log.warning_count}")
 
 def main():
     r''' @fn def main()
