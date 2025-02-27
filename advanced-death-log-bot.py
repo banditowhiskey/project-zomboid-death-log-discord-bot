@@ -4,6 +4,7 @@ import asyncio
 import random
 from discord.ext import commands
 from discord import Intents
+import re
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -99,6 +100,25 @@ def parse_log_entry(log_entry):
     data["real_life_hours"] = parse_survived_time(data["time_survived"])
 
     return data
+
+def find_highest_level_skill(skills_list:list)->dict:
+    biggest   = {}
+    temporary = {}
+    current   = 0
+    next      = 0
+
+    skills = skills_list.split("\n")
+
+    for skill in skills:
+        # Strength and fitness are always pretty high so I'm excluding those.
+        if "strength" not in skill.lower() and "fitness" not in skill.lower():
+            log.info(f"Checking if {skill} is largest")
+            # temporary = {skill : }
+            # next = re.findall(r'\d+', skill)
+
+            # if next > current:
+            #     current = next
+
 
 # Function to parse and calculate real-life hours from survival time
 def parse_survived_time(time_str):
