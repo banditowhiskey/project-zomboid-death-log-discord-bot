@@ -14,6 +14,7 @@ sys.path.insert(0, "./pkg")
 sys.path.insert(0, "./inc")
 
 from constant_configuration import FUNNY_LINES
+from constant_configuration import CLI_ARG_DEFAULTS
 from zomboid_bot_cli import ZomboidBotCLI
 from Log import Log
 
@@ -189,21 +190,27 @@ async def monitor_log_file(file_path):
                         else:
                             log.info("Primary Channel DNE?")
 
-                        # Send detailed message to secondary channel
-                        secondary_channel = bot.get_channel(SECONDARY_CHANNEL_ID)
-                        if secondary_channel:
-                            details = (
-                                f"**Steam Name:** {data['steam_name']}\n"
-                                f"**Time of Death:** {data['timestamp']}\n"
-                                f"**Position:** {data['position']}\n"
-                                f"**Traits:** {data['traits']}\n"
-                                f"**Skills:** {data['skills']}\n"
-                                # f"**Inventory:** {data['inventory']}"
-                            )
-                            await secondary_channel.send(details)
+                        # Do a check here to see if the user wants this information or not.
+                        if bot_cli.args.number_of_channels == CLI_ARG_DEFAULTS["number_of_channels"]:
+                            log.debug_message("Second Discord Channel in use")
+                            # Send detailed message to secondary channel
+                            secondary_channel = bot.get_channel(SECONDARY_CHANNEL_ID)
+                            if secondary_channel:
+                                details = (
+                                    f"**Steam Name:** {data['steam_name']}\n"
+                                    f"**Time of Death:** {data['timestamp']}\n"
+                                    f"**Position:** {data['position']}\n"
+                                    f"**Traits:** {data['traits']}\n"
+                                    f"**Skills:** {data['skills']}\n"
+                                    # f"**Inventory:** {data['inventory']}"
+                                )
+                                await secondary_channel.send(details)
+
+                            else:
+                                log.warn("Secondary Channel DNE?")
 
                         else:
-                            log.info("Secondary Channel DNE?")
+                            log.debug_message("Second discord Channel NOT in use")
 
                     else:
                         log.info("Death not found")
