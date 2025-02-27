@@ -8,24 +8,11 @@ r''' @file zomboid_bot_cli.py
 from argparse import ArgumentParser
 from Log import Log
 
-# IMPORT Configuration Constants
-# import sys
-# sys.path.insert(0, "../inc")
-
-# import constant_configuration
-from constant_configuration import DEFAULT_NUMBER_OF_DISCORD_CHANNELS
-from constant_configuration import DEFAULT_LUA_LOG_FILE_PATH
-from constant_configuration import DEFAULT_INCLUDE_CHARACTER_NAMES
-from constant_configuration import DEFAULT_ONLY_CHARACTER_NAMES
+from constant_configuration import CLI_ARG_DEFAULTS
 
 class ZomboidBotCLI(Log):
     def __init__(self,
-        arg_defaults={
-            "number_of_channels"   : DEFAULT_NUMBER_OF_DISCORD_CHANNELS,
-            "path_to_lua_log_file" : DEFAULT_LUA_LOG_FILE_PATH,
-            "character_names"      : DEFAULT_INCLUDE_CHARACTER_NAMES,
-            "only_character_names" : DEFAULT_ONLY_CHARACTER_NAMES
-        },
+        arg_defaults=CLI_ARG_DEFAULTS,
         get_parser=False
     ):
         r''' @fn __init__
