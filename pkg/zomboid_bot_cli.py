@@ -32,7 +32,7 @@ class ZomboidBotCLI(Log):
             self.args = self.get_cli_args()
         
         else:
-            self.parser = self.get_cli_args(get_parser)
+            self.parser = self.get_cli_args(True)
     
     def get_cli_args(self, get_parser=False):
         r''' @fn def get_cli_args(self, get_parsed=True)
