@@ -59,3 +59,12 @@ FUNNY_LINES = [
     "They believed they could fly. They were wrong.",  
     "Don't feed the zombies' wasn't just a suggestion."  
 ]
+
+INSULTS = [
+    "person",
+    "nerd",
+    "turd",
+    "idiot",
+    "sweat-lord",
+    "sweaty-nerd"
+]

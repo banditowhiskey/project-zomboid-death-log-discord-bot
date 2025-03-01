@@ -5,7 +5,7 @@ r''' @file zomboid_bot_cli.py
 
 '''
 
-from argparse import ArgumentParser
+import argparse
 from Log import Log
 
 from constant_configuration import CLI_ARG_DEFAULTS
@@ -30,7 +30,12 @@ class ZomboidBotCLI(Log):
         # In case class extension occurs and it is decided to add more arguments to the parser.
         if not get_parser:
             self.args                 = self.get_cli_args()
-            Log.ENABLE_DEBUG_MESSAGES = self.args.debug
+
+            if "debug" in self.args:
+                Log.ENABLE_DEBUG_MESSAGES = True
+
+            else:
+                Log.ENABLE_DEBUG_MESSAGES = False
 
         else:
             self.parser = self.get_cli_args(True)
@@ -45,15 +50,15 @@ class ZomboidBotCLI(Log):
 
         '''
 
-        parser = ArgumentParser()
+        parser = argparse.ArgumentParser()
         # -<single character option> and --<multi-character option> are aliased, either works when passing to the script from CLI.
         # The multi-character option must be used to access the value
         parser.add_argument('-n', '--number_of_channels',   type=int,  default=self.arg_defaults["number_of_channels"],   required=False, help="Number of Discord channels to use")
         parser.add_argument('-p', '--path_to_lua_log_file', type=str,  default=self.arg_defaults["path_to_lua_log_file"], required=False, help="Path to the LUA log file. Absolute or relative; default is accesses it from the Zomboid directory that acts as your server info root")
         parser.add_argument('-c', '--character_names',      type=bool, default=self.arg_defaults["character_names"],      required=False,  help="Include Character Names in Discord output")
         parser.add_argument('-o', '--only_character_names', type=bool, default=self.arg_defaults["only_character_names"], required=False,  help="Show Only character Names in Discord output; !!! Overrides option -c")
-        parser.add_argument('-D', '--debug',                type=bool, default=False,                                     required=False,  help="Print DEBUG Messages to Server side console")
-        parser.add_argument('-T', '--test_mode',            type=bool, default=False,                                     required=False,  help="Testing code server side; Don't send discord messages")
+        parser.add_argument('-D', '--debug',                type=bool, default=argparse.SUPPRESS,                         required=False,  help="Print DEBUG Messages to Server side console")
+        parser.add_argument('-T', '--test_mode',            type=bool, default=argparse.SUPPRESS,                         required=False,  help="Testing code server side; Don't send discord messages")
 
         # Expected common case; common case first
         if not get_parser:

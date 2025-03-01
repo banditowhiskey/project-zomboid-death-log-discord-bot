@@ -16,6 +16,8 @@ sys.path.insert(0, "./inc")
 
 from constant_configuration import FUNNY_LINES
 from constant_configuration import CLI_ARG_DEFAULTS
+from constant_configuration import INSULTS
+
 from zomboid_bot_cli import ZomboidBotCLI
 from Log import Log
 
@@ -189,6 +191,37 @@ def parse_survived_time(time_str):
 def get_funny_line():
     return random.choice(FUNNY_LINES)
 
+def setup_log_to_primary_cord(data:dict, notable_skills:str, bot_cli=bot_cli):
+    if bot_cli.args.only_character_names:
+        details = (
+            # -o take priority over -c  --  It will be easier to just communicate this rather than try to support multiple permutations.
+            f"**{data['character_name']}** was killed by {data['death_cause']}\n"
+            f"Notable Skill Levels\n: {notable_skills}"
+            f"Statistics:\n"
+            f"> This {random.choice(INSULTS)} survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
+        )
+
+    # !!! DEFAULT OPTION
+    elif bot_cli.args.character_names:
+        details = (
+            f"**{data['steam_name']}** ({data['character_name']}) was killed by {data['death_cause']}\n"
+            f"Notable Skill Levels {notable_skills}"
+            f"Statistics:\n"
+            f"> This {random.choice(INSULTS)} survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
+        )
+
+    # No Character names included !!! This was legacy behavior and I think including both profile names and character names is better default behavior
+    else:
+        details = (
+            f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
+            f"Notable Skill Levels {notable_skills}"
+            f"Statistics:\n"
+            f"> This {random.choice(INSULTS)} survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
+        )
+
+    return details
+
+
 # Monitor the file and send messages
 async def monitor_log_file(file_path):
     while True:
@@ -218,7 +251,7 @@ async def monitor_log_file(file_path):
                         for skill in highest_skill_levels:
                             for key in skill:
                                 tmp_key        = f"{key}".ljust(10)
-                                notable_skills = f"{notable_skills}\n  {tmp_key}  --  {skill[key]}"
+                                notable_skills = f"{notable_skills}\n> {tmp_key}  --  {skill[key]}"
 
                         notable_skills = f"{notable_skills}\n"
 
@@ -227,33 +260,11 @@ async def monitor_log_file(file_path):
                         log.info("try send message")
                         primary_channel = bot.get_channel(PRIMARY_CHANNEL_ID)
                         if primary_channel:
-                            if bot_cli.args.only_character_names:
-                                details = (
-                                    # -o take priority over -c  --  It will be easier to just communicate this rather than try to support multiple permutations.
-                                    f"**{data['character_name']}** was killed by {data['death_cause']}\n"
-                                    f"> Notable Skill Levels: {notable_skills}"
-                                    f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
-                                )
-
-                            # !!! DEFAULT OPTION
-                            elif bot_cli.args.character_names:
-                                details = (
-                                    f"**{data['steam_name']}** ({data['character_name']}) was killed by {data['death_cause']}\n"
-                                    f"> Notable Skill Levels {notable_skills}"
-                                    f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
-                                )
-
-                            # No Character names included !!! This was legacy behavior and I think including both profile names and character names is better default behavior
-                            else:
-                                details = (
-                                    f"**{data['steam_name']}** was killed by {data['death_cause']}\n"
-                                    f"> Notable Skill Levels {notable_skills}"
-                                    f"> They survived for {data['time_survived']} and killed {data['zombie_kills']} zombies. \n > That's {data['real_life_hours']} real life hours wasted. \n > {get_funny_line()}"
-                                )
+                            details=setup_log_to_primary_cord(data, notable_skills)
 
                             log.debug_message(f"Log Entry: {details}")
 
-                            if not bot_cli.args.test_mode:
+                            if not "test_mode" in bot_cli.args:
                                 await primary_channel.send(details)
 
                         else:
@@ -275,7 +286,7 @@ async def monitor_log_file(file_path):
                                 )
                                 log.debug_message(f"Log Entry: {details}")
                                 
-                                if not bot_cli.args.test_mode:
+                                if not "test_mode" in bot_cli.args:
                                     await secondary_channel.send(details)
 
                             else:
