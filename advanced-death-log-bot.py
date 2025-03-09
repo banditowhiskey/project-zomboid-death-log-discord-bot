@@ -264,8 +264,8 @@ async def monitor_log_file(file_path):
 
                             log.debug_message(f"Log Entry: {details}")
 
-                            if not "test_mode" in bot_cli.args:
-                                await primary_channel.send(details)
+                            # if not "test_mode" in bot_cli.args:
+                            await primary_channel.send(details)
 
                         else:
                             log.info("Primary Channel DNE?")
@@ -286,8 +286,8 @@ async def monitor_log_file(file_path):
                                 )
                                 log.debug_message(f"Log Entry: {details}")
                                 
-                                if not "test_mode" in bot_cli.args:
-                                    await secondary_channel.send(details)
+                                # if not "test_mode" in bot_cli.args:
+                                await secondary_channel.send(details)
 
                             else:
                                 log.warn("Secondary Channel DNE?")
